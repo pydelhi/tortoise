@@ -126,7 +126,8 @@ class Lexer(object):
         Classify tokens in their categories.
         """
         # TODO: Properly match tokens with items in dict!
-        return TOKEN_DICT[token_string]
+        # return TOKEN_DICT[token_string]
+        raise NotImplementedError
 
 
 
