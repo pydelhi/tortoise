@@ -37,6 +37,7 @@ TOKEN_END_COMMENT = 'comment_end'
 TOKEN_WHITESPACE = 'whitespace'
 TOKEN_HTML = 'html'
 TOKEN_EOF = 'eof'
+TOKEN_TEMPLATE_VAR = 'template_variable'
 
 TOKEN_DICT = {
         '{{': TOKEN_DLBRACE,
@@ -84,7 +85,7 @@ class Token(object):
         else:
             value = self.value
 
-        return '<Token {0}:{1}>'.format(self.type, value)
+        return '<<<Token {0} : {1} >>>'.format(self.type, value)
 
 
 class Lexer(object):
@@ -107,27 +108,50 @@ class Lexer(object):
                 # Clean up a token and then return a proper Token object.
                 # Symbol tokens are expected to be 2 char only!
                 if token is not None:
-                    token_set = set([token[:2], token[:-2]])
-                    if token_set.intersection(set(syntax.SYMBOLS)):
+                    token_set = ([token[:2], token[-2:]])
+                    if token_set[0] in syntax.SYMBOLS and token_set[1] in syntax.SYMBOLS:
                         # Got a token pair with stuff inside. Split them up.
-                        token_split_match = re.match(r'({0})\s*(\w*)\s*({1})'.format(*token_set), token)
+                        token_split_match = re.match(r'({0})\s*([\w\s]*)\s*({1})'.format(*token_set), token)
+
                         if token_split_match:
-                            open_token = token_split_match.groups()[0]
-                        else:
-                            token_type = self.get_token_type(token)
-                            new_token = Token(token, token_type)
-                            yield new_token
-                            # TODO: Yield multiple values from the matched token group.
-                        print("[{0}] - {1}".format(token_type, token))
+                            open_token_str = token_split_match.groups()[0]
+                            open_token = Token(open_token_str, self.get_token_type(open_token_str))
+                            close_token_str = token_split_match.groups()[-1]
+                            close_token = Token(close_token_str, self.get_token_type(close_token_str))
+
+                            # We can have multiple things inside a token-pair
+                            # If it is not a keyword, it is most likely a variable.
+                            # {% for item in list %} <some_html> {% endfor %}
+                            # here, for...in are the keywords, and item and list are the variables.
+                            # {{ }} token-pair can have variables as well as macros, but lets just stick
+                            # to variables for now.
+
+                            yield open_token
+
+                            # Split up and yield everything inside the token-pair.
+                            pair_scope_token_list = token[2:-2].split()
+                            for raw_token in pair_scope_token_list:
+                                yield Token(raw_token, self.get_token_type(raw_token))
+
+                            yield close_token
+                    else:
+                        token_type = TOKEN_HTML
+                        new_token = Token(token, token_type)
+                        yield new_token
 
 
-    def get_token_type(self, token_string):
+    def get_token_type(self, raw_token):
         """
         Classify tokens in their categories.
         """
-        # TODO: Properly match tokens with items in dict!
-        # return TOKEN_DICT[token_string]
-        raise NotImplementedError
+        token_type = TOKEN_DICT.get(raw_token)
+        if not token_type:
+            if raw_token in syntax.KEYWORDS:
+                # Keywords can be their own token
+                token_type = raw_token
+            else:
+                token_type = TOKEN_TEMPLATE_VAR
+        return token_type
 
 
 
