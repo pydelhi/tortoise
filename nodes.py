@@ -44,8 +44,7 @@ class _Node(object):
 
 
     def __repr__(self):
-        return '[Node] {0} {1}'.format(self.token.type, self.token.value)
-
+        return '<Node {0}>'.format(self.__class__.__name__)
 
 class _ScopedNode(_Node):
     creates_scope = True

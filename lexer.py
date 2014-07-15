@@ -77,8 +77,8 @@ class Lexer(object):
     """A Regex based Lexer."""
 
     def __init__(self, source_text):
-        self._source_text = source_text
-        self._source_list = _RE_MEGA.split(self._source_text)
+        self._source_text = source_text.strip()
+        self._source_list = [e for e in re.split(_RE_MEGA, self._source_text) if e]
         self._pos = 0
         self.current = TOKEN_INITIAL
         self._buffer = deque()
@@ -98,13 +98,14 @@ class Lexer(object):
         """
         Generator stream that returns the next token in our buffer.
         """
-        if self._pos >= len(self._source_text):
-            raise StopIteration
-        else:
-            for token in self._source_list:
-                if token:
-                    self.current = Token(token)
-                    yield self.current
+        #if self._pos >= len(self._source_text):
+        #    raise StopIteration
+        #else:
+        # print(self._source_list)
+        # import pdb; pdb.set_trace()
+        for text in self._source_list:
+            self.current = Token(text)
+            yield self.current
 
 
 

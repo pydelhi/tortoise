@@ -16,6 +16,7 @@ of the tree, where the Nodes are known as Leaves.
 """
 
 from nodes import *
+from tokens import *
 from exc import TemplateSyntaxError
 
 # Scope stack. Push when entering a scope, pop while exiting.
@@ -54,6 +55,35 @@ class Parser(object):
             raise TemplateSyntaxError("Failed to Parse token: {0}".format(token))
 
 
+    def generate_parse_tree(self):
+        """
+        1. Start from the Root Node.
+        2. Obtain next token in stream.
+        3. If token is end type, pop indicator out of scope.
+        3a. End token should know how many branches are to be popped out of stack.
+        4. Create new node from that token.
+        5. If Node is scopable, push indicator into scope stack.
+        6. Make new node a child of node in tree.
+        """
+        root_token = Root()
+        scope_stack = [root_token]
+        for token in self.stream:
+            # print('Stack:::{}'.format(scope_stack))
+            if token:
+                parent = scope_stack[-1]
+                if token.type == TOKEN_BLOCK_END:
+                    #parent.exit_scope()
+                    scope_stack.pop()
+                    continue                        # We don't create Nodes for End Tokens!
+                node = self.create_node(token)
+                if node:
+                    parent.children.append(node)
+                    print('Parent: {}'.format(parent))
+                    print('\tChildren: {}'.format(parent.children))
+                    if node.creates_scope:
+                        scope_stack.append(node)
+        return scope_stack
+
 if __name__ == '__main__':
 
     source = """
@@ -69,5 +99,7 @@ if __name__ == '__main__':
 </div>
 """
     parser = Parser(source)
-    for token in parser.stream:
-        parser.create_node(token)
+    print(parser.generate_parse_tree())
+
+    #for token in parser.stream:
+    #    parser.create_node(token)
