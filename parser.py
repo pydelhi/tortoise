@@ -33,7 +33,6 @@ class Parser(object):
     def create_node(self, token):
         node_cls = None
         # clean_token = token.clean()
-
         if token.type == TOKEN_HTML:
             node_cls = HTML
         elif token.type == TOKEN_VAR:
@@ -50,11 +49,14 @@ class Parser(object):
         if node_cls:
             node = node_cls(token)
             return node
+
         elif not node_cls and token.type != TOKEN_BLOCK_END:
             # The end blocks are just for popping out of scope,
             # no need for actual Node objects
             raise TemplateSyntaxError("Failed to Parse token: {0}".format(
                 token))
+        else:
+            raise TemplateSyntaxError("Invalid Syntax")
 
     def generate_parse_tree(self):
         """
@@ -69,7 +71,6 @@ class Parser(object):
         root_token = Root()
         scope_stack = [root_token]
         for token in self.stream:
-            # print('Stack:::{}'.format(scope_stack))
             if token:
                 parent = scope_stack[-1]
                 if token.type == TOKEN_BLOCK_END:
@@ -83,6 +84,8 @@ class Parser(object):
                     if node.creates_scope:
                         scope_stack.append(node)
                         node.enter_scope()
+        if len(scope_stack) != 1:
+            raise TemplateSyntaxError('Unbalanced blocks. Check ends?')
         return root_token
 
 if __name__ == '__main__':
