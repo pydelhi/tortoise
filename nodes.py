@@ -18,9 +18,10 @@ class _Node(object):
     def __init__(self, token=None):
         self.token = token
         self.children = []
+        self.process_token(self.token)
 
-    def process_token(self):
-        raise NotImplementedError
+    def process_token(self, token):
+        pass
 
     def render_children(self, context, children=None):
         if children is None:
@@ -34,17 +35,17 @@ class _Node(object):
         return ''.join(map(render_child, children))
 
     def render(self, context):
-        raise NotImplementedError
+        pass
 
     def enter_scope(self):
-        raise NotImplementedError
+        pass
 
     def exit_scope(self):
-        raise NotImplementedError
-
+        pass
 
     def __repr__(self):
         return '<Node {0}>'.format(self.__class__.__name__)
+
 
 class _ScopedNode(_Node):
     creates_scope = True
@@ -65,7 +66,7 @@ class Variable(_Node):
             raise TypeError
 
     def render(self, context):
-        return resolve(self.token.value, context)
+        return resolve(self.token.clean(), context)
 
 
 class For(_ScopedNode):
@@ -82,7 +83,7 @@ class For(_ScopedNode):
         :token: for i in ('a', 'b', 'c')
         """
         try:
-            _, _iter = literal_eval(re.split('\s+', token, 1))
+            _, _iter = eval_expression(re.split('\s+', token, 1))
         except ValueError:
             raise SyntaxError(token)
 
@@ -123,4 +124,3 @@ class HTML(_Node):
 
     def render(self, context):
         return self.token
-

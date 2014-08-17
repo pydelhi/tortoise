@@ -3,6 +3,11 @@
 
 import ast
 
+
+class ContextError(Exception):
+    pass
+
+
 def resolve(token, context):
     """
     A context is a dict with keys and values. We resolve the values
@@ -21,7 +26,10 @@ def resolve(token, context):
                 rv = getattr(rv, str(i))
         return rv
     else:
-        return context.get(token, None)
+        rv = context.get(token, None)
+        if rv is None:
+            raise ContextError('Context lookup failed!')
+        return rv
 
 
 def eval_expression(expr):

@@ -23,6 +23,7 @@ from exc import TemplateSyntaxError
 # Stack size should be zero at the end of a template render.
 SCOPE_STACK = []
 
+
 class Parser(object):
 
     def __init__(self, source_text):
@@ -31,7 +32,7 @@ class Parser(object):
 
     def create_node(self, token):
         node_cls = None
-        clean_token = token.clean()
+        # clean_token = token.clean()
 
         if token.type == TOKEN_HTML:
             node_cls = HTML
@@ -52,15 +53,15 @@ class Parser(object):
         elif not node_cls and token.type != TOKEN_BLOCK_END:
             # The end blocks are just for popping out of scope,
             # no need for actual Node objects
-            raise TemplateSyntaxError("Failed to Parse token: {0}".format(token))
-
+            raise TemplateSyntaxError("Failed to Parse token: {0}".format(
+                token))
 
     def generate_parse_tree(self):
         """
         1. Start from the Root Node.
         2. Obtain next token in stream.
         3. If token is end type, pop indicator out of scope.
-        3a. End token should know how many branches are to be popped out of stack.
+        3a. End token should know how many branches to pop out of stack.
         4. Create new node from that token.
         5. If Node is scopable, push indicator into scope stack.
         6. Make new node a child of node in tree.
@@ -72,17 +73,17 @@ class Parser(object):
             if token:
                 parent = scope_stack[-1]
                 if token.type == TOKEN_BLOCK_END:
-                    #parent.exit_scope()
+                    # TODO: Pop out If+Else or For on reaching End!
+                    # parent.exit_scope()
                     scope_stack.pop()
-                    continue                        # We don't create Nodes for End Tokens!
+                    continue           # We don't create Nodes for End Tokens!
                 node = self.create_node(token)
                 if node:
                     parent.children.append(node)
-                    print('Parent: {}'.format(parent))
-                    print('\tChildren: {}'.format(parent.children))
                     if node.creates_scope:
                         scope_stack.append(node)
-        return scope_stack
+                        node.enter_scope()
+        return root_token
 
 if __name__ == '__main__':
 
@@ -98,8 +99,6 @@ if __name__ == '__main__':
     {% endfor %}
 </div>
 """
-    parser = Parser(source)
-    print(parser.generate_parse_tree())
-
-    #for token in parser.stream:
-    #    parser.create_node(token)
+    source2 = "Hello, {{ name }}"
+    parser = Parser(source2)
+    print(parser.generate_parse_tree().render({'name': 'Manish'}))

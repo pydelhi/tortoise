@@ -11,7 +11,8 @@ from tokens import *
 from exc import TemplateSyntaxError
 
 c = lambda x: re.compile(x)
-_RE_MEGA = c(r'({0}.*?{1})|({2}.*?{3})|({4}.*?{5})'.format(*syntax.SYMBOLS))
+_RE_MEGA = r'({0}.*?{1})|({2}.*?{3})|({4}.*?{5})'.format(*syntax.SYMBOLS)
+
 
 class SyntaxError(Exception):
 
@@ -28,12 +29,12 @@ class Token(object):
     """
 
     def __init__(self, value, line_no=None, col_no=None):
-        # Lets get this thing working first. Take care of line number, col number later!
+        # Lets get this thing working first.
+        # Take care of line number, col number later!
         self.value = value
         self.line_no = line_no
         self.col_no = col_no
         self.type = self.get_token_type()
-
 
     def get_token_type(self):
         """
@@ -55,7 +56,7 @@ class Token(object):
 
     def clean(self):
         if self.type in [TOKEN_VAR, TOKEN_BLOCK]:
-            return ''.join(self.value[2:-2])
+            return ''.join(self.value[2:-2].strip())
         return self.value
 
     def check_token_syntax(self, token_type, token_content):
@@ -67,10 +68,11 @@ class Token(object):
         elif token_type == TOKEN_BLOCK:
             split = token_content.split()
             if split[0] not in syntax.KEYWORDS:
-                raise TemplateSyntaxError('Invalid keyword - {0}'.format(split[0]))
+                raise TemplateSyntaxError('Invalid keyword - {0}'.format(
+                    split[0]))
 
     def __repr__(self):
-        return '[Token] {0} -- {1}'.format(self.type, self.value)
+        return '{0}'.format(self.value)
 
 
 class Lexer(object):
@@ -78,7 +80,9 @@ class Lexer(object):
 
     def __init__(self, source_text):
         self._source_text = source_text.strip()
-        self._source_list = [e for e in re.split(_RE_MEGA, self._source_text) if e]
+        self._source_list = [
+            e for e in re.split(_RE_MEGA, self._source_text) if e
+        ]
         self._pos = 0
         self.current = TOKEN_INITIAL
         self._buffer = deque()
@@ -108,6 +112,8 @@ class Lexer(object):
             yield self.current
 
 
+def tokenize(source):
+    return iter(Lexer(source))
 
 
 if __name__ == '__main__':
