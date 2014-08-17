@@ -30,7 +30,7 @@ class _Node(object):
 
         def render_child(child):
             child_html = child.render(context)
-            return '' if not child_html else str(child_html)
+            return '' if child_html is None else str(child_html)
 
         # Render all the children!
         return ''.join(map(render_child, children))
@@ -83,18 +83,34 @@ class For(_ScopedNode):
         :token: for i in [1, 2, 3]
         :token: for i in ('a', 'b', 'c')
         """
+        # Evaluate the iterable and then render
+        # the result items individually.
         try:
-            _, _iter = eval_expression(re.split('\s+', token, 1))
+            loop = re.split('\s+', token.clean(), 3)
+            if len(loop) != 4 or loop[2] != 'in':
+                raise TemplateSyntaxError('Invalid for loop expression!')
+            else:
+                iterable = loop[-1]
+                # Add the variable name to the current scope
+            self._iter = eval_expression(iterable)
         except ValueError:
             raise SyntaxError(token)
 
     def render(self, context):
-        if _iter[0] == 'literal':
-            items = _iter[1]
-        elif _iter[0] == 'name':
-            items = resolve(iter[1], context)
+        if self._iter[0] == 'literal':
+            items = self._iter[1]
+        elif self._iter[0] == 'name':
+            items = resolve(self._iter[1], context)
+
+        # Since Py2.x can't mutate parent scope variables,
+        # we use a dictionary to pass in the index to the function below.
+        nonlocals = {'index': 0}
 
         def render_item(item):
+            # Add the current item to be rendered into the context.
+            context['item'] = item
+            context['index'] = nonlocals['index']
+            nonlocals['index'] += 1
             return self.render_children(context, self.children)
 
         return ''.join(map(render_item, items))

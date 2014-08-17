@@ -13,8 +13,11 @@ class Tortoise(object):
 
 
 if __name__ == '__main__':
-    text = "Hello, {{ name }}"
+    text = """
+Hello, {{ name }}.
+{% for item in [1, 2, 3] %}
+    Index {{ index }}: {{ item }}
+{% endfor %}"""
     context = {"name": "Manish"}
     template = Tortoise(text)
     print(template.render(context))
-    print(template.render({'name': 'Aakash'}))
