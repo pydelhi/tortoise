@@ -8,6 +8,9 @@ class AnyOldObject(object):
         for k, v in attrs.items():
             setattr(self, k, v)
 
+    def func(self):
+        return 'func!'
+
 
 class TemplateTest(TestCase):
 
