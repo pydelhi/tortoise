@@ -14,13 +14,6 @@ c = lambda x: re.compile(x)
 _RE_MEGA = r'({0}.*?{1})|({2}.*?{3})|({4}.*?{5})'.format(*syntax.SYMBOLS)
 
 
-class SyntaxError(Exception):
-
-    def __init__(self, line_no, col_no):
-        self.line_no = line_no
-        self.col_no = col_no
-
-
 class Token(object):
     """
     Wrapper of each word Token seen in the source text.

@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-
 import ast
-
-
-class ContextError(Exception):
-    pass
+from exc import TemplateContextError
 
 
 def resolve(token, context):
@@ -33,7 +29,7 @@ def resolve(token, context):
     else:
         rv = context.get(token, None)
         if rv is None:
-            raise ContextError('Context lookup failed!')
+            raise TemplateContextError(token)
         return rv
 
 

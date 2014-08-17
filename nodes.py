@@ -1,6 +1,7 @@
 from lexer import Lexer
 from tokens import *
 from utils import resolve, eval_expression
+from exc import TemplateSyntaxError
 
 import re
 

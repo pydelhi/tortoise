@@ -2,6 +2,7 @@
 Some customized Exceptions for the Template Engine
 """
 
+
 class TemplateError(Exception):
     pass
 
@@ -21,4 +22,4 @@ class TemplateSyntaxError(TemplateError):
         self.error_syntax = error_syntax
 
     def __str__(self):
-        return 'Invalid Syntax: "%s"' % self.error_syntax
+        return '%s' % self.error_syntax
