@@ -23,7 +23,12 @@ def resolve(token, context):
         rv = context.get(t_split[0], None)
         if rv and t_split[1:]:
             for i in t_split[1:]:
-                rv = getattr(rv, str(i))
+                try:
+                    rv = getattr(rv, str(i))
+                except AttributeError:
+                    rv = rv[str(i)]
+                if callable(rv):
+                    rv = rv()
         return rv
     else:
         rv = context.get(token, None)

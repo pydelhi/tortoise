@@ -51,6 +51,8 @@ class TemplateTest(TestCase):
         # Variables' attributes can be accessed with dots
         obj = AnyOldObject(a="Any")
         self.try_render("{{ obj.a }}", locals(), "Any")
+        self.try_render("{{ obj.func }}", locals(), "func!")
 
         obj2 = AnyOldObject(obj=obj, b="Bee")
         self.try_render("{{obj2.obj.a}} {{ obj2.b }}", locals(), "Any Bee")
+
