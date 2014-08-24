@@ -74,9 +74,11 @@ class Parser(object):
             if token:
                 parent = scope_stack[-1]
                 if token.type == TOKEN_BLOCK_END:
-                    # TODO: Pop out If+Else or For on reaching End!
                     # parent.exit_scope()
-                    scope_stack.pop()
+                    item = scope_stack.pop()
+                    popped_token = item.token.clean()
+                    if popped_token == 'else':
+                        scope_stack.pop()
                     continue           # We don't create Nodes for End Tokens!
                 node = self.create_node(token)
                 if node:
