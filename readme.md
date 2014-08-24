@@ -14,7 +14,7 @@ A Template Engine inspired by Jinja2, built for fun!
 
 ## TODO
 + Fix the token cleanup. It's a mess. :-/
-+ Loop and Conditional constructs.
++ ~~Loop and Conditional constructs.~~
 + Filters.
 + Loaders.
 + Variable injection in global scope (See context processors in jinja).
