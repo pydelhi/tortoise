@@ -2,6 +2,7 @@ from lexer import Lexer
 from tokens import *
 from utils import resolve, eval_expression
 from exc import TemplateSyntaxError
+from syntax import OP_TABLE
 
 import re
 
@@ -90,6 +91,7 @@ class For(_ScopedNode):
             if len(loop) != 4 or loop[2] != 'in':
                 raise TemplateSyntaxError('Invalid for loop expression!')
             else:
+                self._loop_var = loop[1]
                 iterable = loop[-1]
                 # Add the variable name to the current scope
             self._iter = eval_expression(iterable)
@@ -108,7 +110,7 @@ class For(_ScopedNode):
 
         def render_item(item):
             # Add the current item to be rendered into the context.
-            context['item'] = item
+            context[self._loop_var] = item
             context['index'] = nonlocals['index']
             nonlocals['index'] += 1
             return self.render_children(context, self.children)
@@ -119,10 +121,65 @@ class For(_ScopedNode):
 class If(_ScopedNode):
 
     def process_token(self, token):
-        pass
+        """
+        :token: if (test)
+        """
+        try:
+            self.conditional = re.split('\s+', token.clean(), 4)
+            length = len(self.conditional)
+            if length != 2 and length != 4 and length != 5:
+                raise TemplateSyntaxError('Invalid If expression!')
+        except ValueError:
+            raise SyntaxError(token)
 
     def render(self, context):
-        pass
+        self._ctx = context
+        self._test = self.eval_condition(self.conditional)
+        else_node = self.check_else(self.conditional)
+        children = None
+        render = True
+        if self._test:
+            children = self.children
+        elif else_node and not self._test:
+            children = else_node.children
+        else:
+            render = False
+        if render:
+            rendered_children = self.render_children(context, children)
+            return ''.join(rendered_children)
+
+    def check_else(self, cond):
+        for item in self.children:
+            if isinstance(item, Else):
+                return item
+
+    def resolve_in_expression(self, expr, ctx):
+        expr_type, expr = eval_expression(expr)
+        if expr_type == 'name' and expr:
+            resolved = resolve(expr, ctx)
+            return eval_expression(resolved)[1] if resolved else None
+        elif expr_type == 'literal':
+            return expr
+
+    def eval_condition(self, cond):
+        ctx = self._ctx
+        # cond[0] will be the token, skip.
+        left = self.resolve_in_expression(cond[1], ctx)
+        right = self.resolve_in_expression(cond[-1], ctx)
+        if len(cond) == 4:
+            op = OP_TABLE.get(cond[2], None)
+            if not op and cond[2] != 'is':
+                raise TemplateSyntaxError('Invalid operator: {}'.format(
+                    cond[2]))
+            elif cond[2] == 'is':
+                return bool(left is right)
+            return op(left, right)
+        if len(cond) == 5:
+            if cond[2] != 'is' or cond[3] != 'not':
+                raise TemplateSyntaxError('Invalid If expression!')
+            else:
+                return bool(left is not right)
+        return bool(right)
 
 
 class Else(_ScopedNode):

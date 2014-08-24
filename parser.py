@@ -89,21 +89,3 @@ class Parser(object):
         if len(scope_stack) != 1:
             raise TemplateSyntaxError('Unbalanced blocks. Check ends?')
         return root_token
-
-if __name__ == '__main__':
-
-    source = """
-<h1>Hello, {{ name }}!!</h1>
-<div class="some-class">
-    {% for item in list %}
-        {% if item %}
-            <h2> {{ item }} </h2>
-        {% else %}
-            <h4> {{ item }} </h4>
-        {% endif %}
-    {% endfor %}
-</div>
-"""
-    source2 = "Hello, {{ name }}"
-    parser = Parser(source2)
-    print(parser.generate_parse_tree().render({'name': 'Manish'}))

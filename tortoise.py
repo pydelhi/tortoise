@@ -17,7 +17,12 @@ if __name__ == '__main__':
 Hello, {{ name }}.
 {% for item in [1, 2, 3] %}
     Index {{ index }}: {{ item }}
+    {% if myList %}
+        do something here
+    {% else %}
+        do something else
+    {% endif %}
 {% endfor %}"""
-    context = {"name": "Manish"}
+    context = {"name": "Manish", "myList": [1, 1, 2, 3, 5, 8]}
     template = Tortoise(text)
     print(template.render(context))

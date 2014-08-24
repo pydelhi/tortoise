@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import string
+import operator
 
 KEYWORDS = """
 block
@@ -22,6 +23,15 @@ SYMBOLS = """
 {#
 #}
 """.split()
+
+OP_TABLE = {
+    '<': operator.lt,
+    '>': operator.gt,
+    '<=': operator.le,
+    '>=': operator.ge,
+    '==': operator.eq,
+    '!=': operator.ne
+}
 
 VARIABLE_STARTCHARS = string.letters
 VARIABLE_CHARS = string.letters + string.digits + '_'

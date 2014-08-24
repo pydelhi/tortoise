@@ -15,22 +15,29 @@ def resolve(token, context):
         `myTemplate.render("template.html", foo=10)`
     """
     if '.' in token:
-        t_split = token.split('.')
-        rv = context.get(t_split[0], None)
-        if rv and t_split[1:]:
-            for i in t_split[1:]:
-                try:
-                    rv = getattr(rv, str(i))
-                except AttributeError:
-                    rv = rv[str(i)]
-                if callable(rv):
-                    rv = rv()
-        return rv
+        return do_dots(token, context)
     else:
-        rv = context.get(token, None)
-        if rv is None:
+        try:
+            rv = context[token]
+        except KeyError:
             raise TemplateContextError(token)
-        return rv
+        else:
+            return rv
+
+
+def do_dots(token, context):
+    # handle dot attribute lookups!
+    t_split = token.split('.')
+    rv = context.get(t_split[0], None)
+    if rv and t_split[1:]:
+        for i in t_split[1:]:
+            try:
+                rv = getattr(rv, str(i))
+            except AttributeError:
+                rv = rv[str(i)]
+            if callable(rv):
+                rv = rv()
+    return rv
 
 
 def eval_expression(expr):
